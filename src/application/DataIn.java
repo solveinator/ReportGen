@@ -5,18 +5,20 @@ import java.io.*;
 import java.util.*;
 import com.microsoft.sqlserver.jdbc.SQLServerStatement;
 import java.util.Scanner;
+import java.util.ArrayList;
 
 public class DataIn {
 
-	HashMap<String,String> queries;
-	String connectionUrl;
-	String dbNickName;
-	String dbms; 
-	String serverName;
-	String portNumber;
-	String dbName;
-	String userName;
-	String password;	
+	private HashMap<String,String> queries;
+	private String connectionUrl;
+	private String dbNickName;
+	private String dbms; 
+	private String serverName;
+	private String portNumber;
+	private String dbName;
+	
+	private String userName;
+	private String password;	
 	
 	/**
 	 * Creates a new DataIn instance which will access the data via data access
@@ -24,16 +26,20 @@ public class DataIn {
 	 * 
 	 * @param connectionName
 	 */
-	public DataIn(String connectionName) {
+	public DataIn(String connectionName, String userName, String password) throws SQLException {
 		dbNickName = connectionName;
+		this.userName = userName;
+		this.password = password;
+		
 		try {			
 			Scanner scan = new Scanner(new File(connectionName));
 			try{
 				connectionUrl = scan.nextLine();
+				connectionUrl = connectionUrl + "user=" + this.userName + ";password=" + this.password;
 			}
 			catch(NoSuchElementException e){System.out.print("No lines"); }
 			catch(IllegalStateException e2){System.out.print("Illegal State");}
-			System.out.println(connectionUrl);
+			getConnection();
 			scan.close();
 			
 			queries = new HashMap<String, String>();
@@ -54,33 +60,37 @@ public class DataIn {
 		}
 	
 	public Connection getConnection() throws SQLException {		
-	    Connection conn = DriverManager.getConnection(connectionUrl);
+		Connection conn = DriverManager.getConnection(connectionUrl);
 	   
 	    System.out.println("Connected to " + dbNickName);
 	    return conn;
 	}
 	
-	public ResultSet viewTable(Connection con, String dbName, String queryName)
-		throws SQLException {
-
+	public ArrayList<ArrayList<Object>> viewTable(String queryName) throws SQLException {
+		Connection con = getConnection();
 		Statement stmt = null;
-		String query = queries.get(queryName);
-		System.out.println(query);
 		ResultSet res = null;
+		
+		ArrayList<ArrayList<Object>> data = new ArrayList<ArrayList<Object>>();
+        data.add(new ArrayList<Object>());
+		//String query = queries.get(queryName);
+		Query qu = new Query("OrderDateKey", "FactInternetSales", "ProductKey = '310'");
 		     try {
 		        stmt = con.createStatement();
-		        res = stmt.executeQuery(query);
+		        res = stmt.executeQuery(qu.getQuery());
+
 		        while (res.next()) {
 					String odk = res.getString("OrderDateKey");
-					System.out.println(odk);}
-		        
+					data.get(0).add(odk);
+					//String fis = res.getString("FactInternetSales");
+		        }
 		    } catch (SQLException e ) {
 		        System.out.println(e);
-		        res = null;
+		        data = null;
 		        
 		    } finally {
 		        if (stmt != null) { stmt.close(); }
-		        return res;
+		        return data;
 		    }
 		}
 	
@@ -95,15 +105,8 @@ public class DataIn {
 	public void cleanData(){}
 	
 	public static void main(String[] args) {
-		DataIn testIn = new DataIn("SawbugWinConnectionUrl.txt");
 		try {
-			testIn.getConnection();
-		}
-		catch(SQLException e) {
-			System.out.print("Error: " + e.getMessage());
-		}
-		testIn = new DataIn("SawbugConnectionUrl.txt");
-		try {
+			DataIn testIn = new DataIn("SawbugWinConnectionUrl.txt", "" , "");
 			testIn.getConnection();
 		}
 		catch(SQLException e) {
