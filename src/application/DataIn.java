@@ -7,6 +7,13 @@ import com.microsoft.sqlserver.jdbc.SQLServerStatement;
 import java.util.Scanner;
 import java.util.ArrayList;
 
+/**
+ * @author Solveig Osborne
+ * @version 2016_08_03
+ * 
+ * This class connects the main class to the database. It maintains a master list of 
+ * reports which maps the name of the report to the ReportTemplate.  
+ */
 public class DataIn {
 
 	private HashMap<String,String> queries;
@@ -21,10 +28,16 @@ public class DataIn {
 	private String password;	
 	
 	/**
-	 * Creates a new DataIn instance which will access the data via data access
-	 * credentials stored in the file named connectionName
+	 * Creates a new DataIn instance which will access the connection string stored in the file
+	 * named connectionName combined with the userName and password. If using Windows
+	 * authentication, the userName and password can be empty strings.
 	 * 
-	 * @param connectionName
+	 * @param connectionName String - The name of the text file with the first part of the 
+	 * connection string.
+	 * @param userName String - The SQL username of the user. If using Windows authentication, 
+	 * this should be an empty String. 
+	 * @param password String - The SQL password of the user. If using Windows authentication,
+	 * this should be an empty String.
 	 */
 	public DataIn(String connectionName, String userName, String password) throws SQLException {
 		dbNickName = connectionName;
@@ -41,68 +54,59 @@ public class DataIn {
 			catch(IllegalStateException e2){System.out.print("Illegal State");}
 			getConnection();
 			scan.close();
-			
-			queries = new HashMap<String, String>();
-			Scanner scan2 = new Scanner(new File("SQLQueries.txt"));
-			try{
-			while(scan2.hasNext()) {
-				String query = scan2.nextLine();
-				String[] queryCombo = query.split("\\|");
-				queries.put(queryCombo[0], queryCombo[1]);
-				}}
-			catch(NoSuchElementException e){System.out.print("No lines"); }
-			catch(IllegalStateException e2){System.out.print("Illegal State");}
-			scan2.close();
 		}
 		catch(FileNotFoundException e3) {System.out.println("File not found");
 		}
-		
-		}
+	}
 	
+	/**
+	 * @return Connection - A connection to the given database with the given credentials.  
+	 * @throws SQLException
+	 */
 	public Connection getConnection() throws SQLException {		
 		Connection conn = DriverManager.getConnection(connectionUrl);
-	   
-	    System.out.println("Connected to " + dbNickName);
 	    return conn;
 	}
 	
-	public ArrayList<ArrayList<Object>> viewTable(String queryName) throws SQLException {
+	/**
+	 * @param report ReportTemplate - A class which inherits the ReportTemplate class. Note: 
+	 * The ReportTemplate class is meant to serve as a template, and it should not be used
+	 * as an input for this method. 
+	 *  
+	 * @return ArrayList<ArrayList<String>> 
+	 * @throws SQLException
+	 */
+	public ArrayList<ArrayList<String>> viewTable(ReportTemplate report) throws SQLException {
 		Connection con = getConnection();
+	    System.out.println("Connected to " + dbNickName);
 		Statement stmt = null;
 		ResultSet res = null;
 		
-		ArrayList<ArrayList<Object>> data = new ArrayList<ArrayList<Object>>();
-        data.add(new ArrayList<Object>());
-		//String query = queries.get(queryName);
-		Query qu = new Query("OrderDateKey", "FactInternetSales", "ProductKey = '310'");
+		ArrayList<ArrayList<String>> data = new ArrayList<ArrayList<String>>();
 		     try {
 		        stmt = con.createStatement();
-		        res = stmt.executeQuery(qu.getQuery());
-
-		        while (res.next()) {
-					String odk = res.getString("OrderDateKey");
-					data.get(0).add(odk);
-					//String fis = res.getString("FactInternetSales");
-		        }
-		    } catch (SQLException e ) {
-		        System.out.println(e);
-		        data = null;
+		        res = stmt.executeQuery(report.getSQL());
 		        
-		    } finally {
-		        if (stmt != null) { stmt.close(); }
+		        ArrayList<String> colNames = report.getColumns();
+		        for(int i = 0; i < colNames.size(); i++) {
+		        	data.add(new ArrayList<String>());
+		        }
+		        while (res.next()) {
+		        	for(int i = 0; i < colNames.size(); i++) {
+		        		String colName = colNames.get(i);
+		        		data.get(i).add(res.getString(colName));
+		        	}
+		        }
 		        return data;
+		        } 
+		     catch (SQLException e ) {
+		        System.out.println(e);
+		        return null;
+		        } 
+		     finally {
+		        if (stmt != null) { stmt.close(); }
 		    }
 		}
-	
-        //int supplierID = rs.getInt("SUP_ID");
-        //float price = rs.getFloat("PRICE");
-        //int sales = rs.getInt("SALES");
-        //int total = rs.getInt("TOTAL");
-        //System.out.println(coffeeName + "\t" + supplierID +
-        //                   "\t" + price + "\t" + sales +
-        //                   "\t" + total);
-	
-	public void cleanData(){}
 	
 	public static void main(String[] args) {
 		try {

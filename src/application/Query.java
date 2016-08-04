@@ -22,7 +22,6 @@ public class Query {
 	public Query(String col, String tbl, String where) throws SQLException {
 		query = "SELECT " + col + " FROM " + tbl + " WHERE " + where;
 	}
-	
 	public Query(String[] columns, String tableName, String[] where, String groupBy, 
 			String[] having, String orderBy) throws SQLException {
 		if(columns == null || tableName == null || tableName == "") {
@@ -60,6 +59,9 @@ public class Query {
 			query = query.trim();
 			System.out.println(query);
 		}
+	
+	
+	
 	}
 	
 	public String getQuery() {
