@@ -4,35 +4,27 @@ import java.util.ArrayList;
 
 /**
  * @author Solveig Osborne
- * @version 2016_08_03
+ * @version 2016_08_11
+ * 
+ * This is a copy of Test Report only it is technically a distribution report.
  *
  */
-public class TestReport extends ReportTemplate {
+public class TestDistReport extends ReportTemplate {
 	
 	private ArrayList<String> columns;
 	private String query;
 	/**
 	 * @param name
 	 */
-	public TestReport(String name) {
-		super(name, true, ReportTemplate.M);
-		query = "Select FirstName, LastName, FactInternetSales.CustomerKey, ProductKey, " +
-				"OrderDateKey, DueDateKey, TotalProductCost, TaxAmt " +
-				"From FactInternetSales Join DimCustomer " +
-				"On FactInternetSales.CustomerKey = DimCustomer.CustomerKey " +
-				"Where TotalProductCost >= '1800'"; //+
-		
+	public TestDistReport(String name) {
+		super(name, false, ReportTemplate.M);
+		query = "Select ProductKey, OrderDateKey, DueDateKey from FactInternetSales Where ProductKey = '310'"; //+
 				//"And uqryReceipts_ReceiptDet.LogDate >= " + getFormattedTS(YStaDate.minusYears(2)) +  
 				//"And uqryReceipts_ReceiptDet.LogDate < " + getFormattedTS(YEndDate.minusYears(2));
-		columns = new ArrayList<String>(5);
-		columns.add("FirstName");
-		columns.add("LastName");
-		columns.add("CustomerKey");
+		columns = new ArrayList<String>(4);
 		columns.add("ProductKey");
 		columns.add("OrderDateKey");
 		columns.add("DueDateKey");
-		columns.add("TotalProductCost");
-		columns.add("TaxAmt");
 	}
 
 	@Override

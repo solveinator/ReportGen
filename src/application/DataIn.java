@@ -6,6 +6,8 @@ import java.util.*;
 import com.microsoft.sqlserver.jdbc.SQLServerStatement;
 import java.util.Scanner;
 import java.util.ArrayList;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.apache.poi.xssf.extractor.XSSFExcelExtractor;
 
 /**
  * @author Solveig Osborne
@@ -16,14 +18,8 @@ import java.util.ArrayList;
  */
 public class DataIn {
 
-	private HashMap<String,String> queries;
 	private String connectionUrl;
-	private String dbNickName;
-	private String dbms; 
-	private String serverName;
-	private String portNumber;
-	private String dbName;
-	
+	private String dbNickName;	
 	private String userName;
 	private String password;	
 	
@@ -76,7 +72,7 @@ public class DataIn {
 	 * @return ArrayList<ArrayList<String>> 
 	 * @throws SQLException
 	 */
-	public ArrayList<ArrayList<String>> viewTable(ReportTemplate report) throws SQLException {
+	public ArrayList<ArrayList<String>> queryDB(ReportTemplate report) throws SQLException {
 		Connection con = getConnection();
 	    System.out.println("Connected to " + dbNickName);
 		Statement stmt = null;
@@ -85,7 +81,10 @@ public class DataIn {
 		ArrayList<ArrayList<String>> data = new ArrayList<ArrayList<String>>();
 		     try {
 		        stmt = con.createStatement();
-		        res = stmt.executeQuery(report.getSQL());
+		        con.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
+		        String quer = report.getSQL();
+		        res = stmt.executeQuery(quer);
+		       
 		        
 		        ArrayList<String> colNames = report.getColumns();
 		        for(int i = 0; i < colNames.size(); i++) {
@@ -94,7 +93,16 @@ public class DataIn {
 		        while (res.next()) {
 		        	for(int i = 0; i < colNames.size(); i++) {
 		        		String colName = colNames.get(i);
-		        		data.get(i).add(res.getString(colName));
+		        		//System.out.println(res.getMetaData().getColumnLabel(i));
+		        		try {
+		        			//System.out.print(res.getString(colName) + "  ");
+		        			data.get(i).add(res.getString(colName));
+		        			//data.get(i).add(res.getString(i));
+		        		}
+		        		catch(NullPointerException n) {
+		        			System.out.println("Error: Null Pointer Exception\n" + n.getMessage());
+		        		}
+		        		
 		        	}
 		        }
 		        return data;
@@ -102,11 +110,54 @@ public class DataIn {
 		     catch (SQLException e ) {
 		        System.out.println(e);
 		        return null;
-		        } 
+		        }
+		     catch (Exception e2) {
+		    	 if(e2 instanceof SQLException) {
+		    		 throw e2;
+		    	 }
+		    	 else {
+		    		 System.out.println(e2.getMessage());
+		    		 return null;
+		    	 }
+		     }
 		     finally {
 		        if (stmt != null) { stmt.close(); }
 		    }
 		}
+	
+	public static HashMap<String,String[]> getTargets() {
+		HashMap<String,String[]> tar = new HashMap<String, String[]>();
+		try {
+		    XSSFWorkbook wb = new XSSFWorkbook(new FileInputStream("Target.xlsx"));
+		    XSSFExcelExtractor extractor = new XSSFExcelExtractor(wb);
+	
+		    extractor.setFormulasNotResults(true);
+		    extractor.setIncludeSheetNames(false);
+		    String[] text = extractor.getText().split("\n");
+		    for(int i = 0; i < text.length; i++) {
+		    	String[] line = text[i].split("\\|");
+		    	if(line.length == 1) {
+		    		tar.put(line[0], null);
+		    	}
+		    	else if (line.length > 1) {
+		    		String[] temp = new String[2];
+		    		temp[0] = line[1].trim();
+		    		temp[1] = line[2].trim();
+		    		tar.put(line[0].trim(), temp);
+		    			System.out.println("[" + line[0] + "]: " + temp[0] + " " + temp[1]);
+		    	}
+		    }    
+		return tar;
+		}
+		catch(FileNotFoundException e) {
+			System.out.println(e.getMessage());
+			return null;
+		}
+		catch(IOException e) {
+			System.out.println(e.getMessage());
+			return null;
+		}
+	} 
 	
 	public static void main(String[] args) {
 		try {
@@ -116,5 +167,6 @@ public class DataIn {
 		catch(SQLException e) {
 			System.out.print("Error: " + e.getMessage());
 		}
+		DataIn.getTargets();
 	}
 }

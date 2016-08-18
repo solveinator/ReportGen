@@ -3,16 +3,21 @@ package application;
 import javafx.application.Application;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import java.util.ArrayList;
 import javafx.event.ActionEvent;
+import javafx.event.EventType;
 import javafx.event.EventHandler;
+import javafx.scene.input.MouseEvent;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.scene.control.*;
 import javafx.scene.Scene;
 import javafx.scene.layout.*;
 import java.sql.SQLException;
+import java.util.HashMap;
 import java.io.IOException;
 import javafx.scene.control.ScrollPane;
+import javafx.fxml.FXMLLoader;
 
 /**
  * @author Solveig Osborne
@@ -34,23 +39,92 @@ public class Main extends Application {
 	private DataOut out;
 	private boolean auth;
 	private VBox root;
+	private boolean res;
+	ObservableList<String> resourcing;
+	ObservableList<String> distribution;
 	
 	@Override
 	public void start(Stage primaryStage) {
 		try {
 			auth = false;
+			res = true;
 			
 			ReportTemplate.initReports();
+			//in = new DataIn("PrimariusConnectionURL.txt", "", "");
+			in = new DataIn("SawbugWinConnectionUrl.txt", "", ""); //SHORTCUT ONLY FOR DEVELOPMENT --MUST BE REMOVED.
+			//primaryStage.getAuth(); //Creates and then closes another stage.
+			//Once authenticated, show report selection screen.
+			//GridPane root2 = FXMLLoader.load(getClass().getResource("fxml_root.fxml"));
 			
 			root = new VBox();
 			Scene scene = new Scene(root,600,400);
 			scene.getStylesheets().add(getClass().getResource("application.css").toExternalForm());
 			primaryStage.setScene(scene);
 			primaryStage.show();		
-						
-			in = new DataIn("SawbugWinConnectionUrl.txt", "", ""); //SHORTCUT ONLY FOR DEVELOPMENT --MUST BE REMOVED.
-			//primaryStage.getAuth(); //Creates and then closes another stage.
-			getReport(); //Populates the current stage
+			
+			Label intro = new Label("Welcome to Solveinator's Reports. Please select the report"
+					+ " you would like to view.");
+			root.getChildren().add(intro);
+			
+			HBox choices = new HBox();
+			root.getChildren().add(choices);
+			
+			ListView<String> catList = new ListView<String>();
+			choices.getChildren().add(catList);
+			ObservableList<String> category = FXCollections.observableArrayList (
+				    "Resourcing", "Distribution");
+			catList.setItems(category);
+			
+			ListView<String> repList = new ListView<String>();
+			choices.getChildren().add(repList);
+			
+			catList.setOnMouseClicked(new EventHandler<MouseEvent>() {
+				@Override
+				public void handle(MouseEvent event) {
+					toggleRepList(repList, catList.getSelectionModel().getSelectedItem());
+				}
+			});
+			
+			ArrayList<String> distReportNames = new ArrayList<String>();
+			ArrayList<String> resReportNames = new ArrayList<String>();
+			for(ReportTemplate report : ReportTemplate.getReportList()) {
+				if(report.getResStatus()) {
+					resReportNames.add(report.getName());
+				}
+				else {
+					distReportNames.add(report.getName());
+				}
+			}
+			resourcing = FXCollections.observableArrayList(resReportNames);
+			distribution = FXCollections.observableArrayList (distReportNames);			
+			repList.setItems(resourcing);
+			
+			ScrollPane s1 = new ScrollPane();
+			s1.setPrefSize(60, 120);
+			s1.setContent(repList);
+			s1.setVbarPolicy(ScrollPane.ScrollBarPolicy.ALWAYS);			
+			
+			//Buttons
+			Button go = new Button("Run Report");
+			go.setOnAction(new EventHandler<ActionEvent>() {
+				@Override
+				public void handle(ActionEvent event) {
+					runReport(repList);
+					
+				}
+			});
+			
+			Button details = new Button("View Details");
+			details.setOnAction(new EventHandler<ActionEvent>() {
+				@Override
+				public void handle(ActionEvent event) {
+					editReport(repList);
+					
+				}
+			});
+			root.getChildren().add(go);
+			root.getChildren().add(details);
+			
 			//Report List 
 			}
 			catch(Exception e) {
@@ -62,60 +136,53 @@ public class Main extends Application {
 	 * Allows user to select the report they want generated. The selected report
 	 * is sent to Report.xlsx
 	 */
-	public void getReport() {
-		//Once authenticated, show report selection screen.
+	public void editTargets() {
 		
-		Label intro = new Label("Welcome to Solveinator's Reports. Please select the report"
-				+ " you would like to view.");
-		root.getChildren().add(intro);
-		
-		HBox choices = new HBox();
-		root.getChildren().add(choices);
-		
-		ListView<String> catList = new ListView<String>();
-		//catList.addEventHandler();
-		choices.getChildren().add(catList);
-		ObservableList<String> category = FXCollections.observableArrayList (
-			    "Resourcing", "Distribution");
-		catList.setItems(category);
-		
-		ListView<String> repList = new ListView<String>();
-		choices.getChildren().add(repList);
-		
-		ObservableList<String> resouring = 
-				FXCollections.observableArrayList(ReportTemplate.getResDic().keySet());
-		
-		ObservableList<String> distribution = 
-				FXCollections.observableArrayList (ReportTemplate.getDistDic().keySet());
-		
-		repList.setItems(resouring);
-		//repList.setItems(distribution);
-			
-		ScrollPane s1 = new ScrollPane();
-		s1.setPrefSize(60, 120);
-		s1.setContent(repList);
-		s1.setVbarPolicy(ScrollPane.ScrollBarPolicy.ALWAYS);			
-		
-		//Buttons
-		Button btn = new Button("Generate Report");
-		btn.setOnAction(new EventHandler<ActionEvent>() {
+	} 
+	
+	private void runReport(ListView<String> repList) {
+		if(repList.getSelectionModel().getSelectedItem() != null) {
+			String reportName = repList.getSelectionModel().getSelectedItem().trim();
+			try {
+				System.out.println(reportName);
+				ReportTemplate temp = null;
+				for(ReportTemplate report : ReportTemplate.getReportList()) {
+					if(report.getName().equals(reportName)) {
+						temp = report;
+					}
+				}
+				if(temp == null) {
+					System.out.println("REPORT NOT FOUND");
+				}
 
-			@Override
-			public void handle(ActionEvent event) {
-				try {
-					String selection = repList.getSelectionModel().getSelectedItem();
-					System.out.println(selection);
-					ReportTemplate temp = ReportTemplate.getResDic().get(selection);
-					DataOut.exportToExcel("Report.xlsx", "Sheet1", in.viewTable(temp));
-					btn.setText("Good Job!"); }
-				catch(SQLException e) {System.out.println("Error: SQLError");}
-				catch(IOException e) {System.out.println("IO Problem");
+				//ReportTemplate temp = ReportTemplate.getResDic().get(selection);
+				ArrayList<ArrayList<String>> results = in.queryDB(temp);
+				if(results != null && results.size() > 0 && results.get(0).size() > 0) {
+					//temp.getCleanRules();
+					temp.cleanData(results);
+					temp.makeReport(results);
+					//btn.setText("Done"); 
 				}
 			}
-		});
-		root.getChildren().add(btn);
-	} 
+			catch(SQLException e) {System.out.println("Error: SQLError\n" + e.getMessage());}
+		}
+	}
+	
+	private void editReport(ListView<String> repList) {
 		
+	}
+	
+	private void toggleRepList(ListView<String> repList, String sel) {
+		if(res && sel.equals("Distribution")) {
+			res = false;
+			repList.setItems(distribution);
+		}
+		else if((!res) && sel.equals("Resourcing")) {
+			res = true;
+			repList.setItems(resourcing);
+		}
+	}
+	
 	/**
 	 * Allows user to provide user name and password to connect to the database. 
 	 */
