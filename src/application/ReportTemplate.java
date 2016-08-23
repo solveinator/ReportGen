@@ -110,7 +110,7 @@ public abstract class ReportTemplate {
 	 * 
 	 * @return String - The query string.
 	 */
-	public abstract String getSQL();
+	public abstract ArrayList<String> getQueryList();
 	
 	/**
 	 * Formats a LocalDateTime as a "timestamp" ready to be included in an SQL query. 
@@ -260,10 +260,10 @@ public abstract class ReportTemplate {
 		reports.add(new ActVsProjByDistCat("Quarterly: Actuals vs Projected, by Distribution Category", ReportTemplate.Q));
 		reports.add(new WasteRatio("Quarterly: Waste ratio for specific products", ReportTemplate.Q));
 		reports.add(new DistByGeo("Quarterly: Total Distribution by Geographical Area", ReportTemplate.Q));
-		reports.add(new ActVsProjByDistCat("Semiannually: Actuals vs Projected, by Distribution Category", ReportTemplate.S));
+		reports.add(new ActVsProjByDistCat("Semiannually: Actuals vs Projected by Distribution Category", ReportTemplate.S));
 		reports.add(new WasteRatio("Semiannually: Waste ratio for specific products", ReportTemplate.S));
 		reports.add(new DistByGeo("Semiannually: Total Distribution by Geographical Area", ReportTemplate.S));
-		reports.add(new ActVsProjByDistCat("Annually: Actuals vs Projected, by Distribution Category", ReportTemplate.A));
+		reports.add(new ActVsProjByDistCat("Annually: Actuals vs Projected by Distribution Category", ReportTemplate.A));
 		reports.add(new WasteRatio("Annually: Waste ratio for specific products", ReportTemplate.A));
 		reports.add(new DistByGeo("Annually: Total Distribution by Geographical Area", ReportTemplate.A));
 	}

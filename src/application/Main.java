@@ -35,6 +35,7 @@ import javafx.fxml.FXMLLoader;
 
 public class Main extends Application {
 	
+	public static boolean testing = false;
 	private DataIn in;
 	private DataOut out;
 	private boolean auth;

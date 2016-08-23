@@ -58,9 +58,8 @@ public class TestDistReport extends ReportTemplate {
 	}
 
 	@Override
-	public String getSQL() {
-		// TODO Auto-generated method stub
-		return query;
+	public ArrayList<String> getQueryList() {
+		return null;
 	}
 
 	@Override

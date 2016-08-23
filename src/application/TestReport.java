@@ -1,5 +1,6 @@
 package application;
 
+import java.io.IOException;
 import java.util.ArrayList;
 
 /**
@@ -10,18 +11,19 @@ import java.util.ArrayList;
 public class TestReport extends ReportTemplate {
 	
 	private ArrayList<String> columns;
-	private String query;
+	private ArrayList<String> queries;
 	/**
 	 * @param name
 	 */
 	public TestReport(String name) {
 		super(name, true, ReportTemplate.M);
-		query = "Select FirstName, LastName, FactInternetSales.CustomerKey, ProductKey, " +
+		queries = new ArrayList<String>();
+		String query = "Select FirstName, LastName, FactInternetSales.CustomerKey, ProductKey, " +
 				"OrderDateKey, DueDateKey, TotalProductCost, TaxAmt " +
 				"From FactInternetSales Join DimCustomer " +
 				"On FactInternetSales.CustomerKey = DimCustomer.CustomerKey " +
 				"Where TotalProductCost >= '1800'"; //+
-		
+		queries.add(query);
 				//"And uqryReceipts_ReceiptDet.LogDate >= " + getFormattedTS(YStaDate.minusYears(2)) +  
 				//"And uqryReceipts_ReceiptDet.LogDate < " + getFormattedTS(YEndDate.minusYears(2));
 		columns = new ArrayList<String>(5);
@@ -66,14 +68,18 @@ public class TestReport extends ReportTemplate {
 	}
 
 	@Override
-	public String getSQL() {
-		// TODO Auto-generated method stub
-		return query;
+	public ArrayList<String> getQueryList() {
+		return queries;
 	}
 
 	@Override
 	public void makeReport(ArrayList<ArrayList<String>> results) {
-		// TODO Auto-generated method stub
+		try {
+			DataOut.exportToExcel("Report.xlsx", "TestData", this, results);
+		}
+		catch(IOException e) {
+			System.out.println(e.getMessage());
+		}
 		
 	}
 }

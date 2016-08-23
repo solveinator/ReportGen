@@ -79,51 +79,50 @@ public class DataIn {
 		ResultSet res = null;
 		
 		ArrayList<ArrayList<String>> data = new ArrayList<ArrayList<String>>();
-		     try {
 		        stmt = con.createStatement();
 		        con.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
-		        String quer = report.getSQL();
-		        res = stmt.executeQuery(quer);
-		       
-		        
-		        ArrayList<String> colNames = report.getColumns();
-		        for(int i = 0; i < colNames.size(); i++) {
-		        	data.add(new ArrayList<String>());
-		        }
-		        while (res.next()) {
+		        if(report.getQueryList().size() == 1) {
+		        	String quer = report.getQueryList().get(0);
+		        	res = stmt.executeQuery(quer);
+
+
+		        	ArrayList<String> colNames = report.getColumns();
 		        	for(int i = 0; i < colNames.size(); i++) {
-		        		String colName = colNames.get(i);
-		        		//System.out.println(res.getMetaData().getColumnLabel(i));
-		        		try {
-		        			//System.out.print(res.getString(colName) + "  ");
-		        			data.get(i).add(res.getString(colName));
-		        			//data.get(i).add(res.getString(i));
-		        		}
-		        		catch(NullPointerException n) {
-		        			System.out.println("Error: Null Pointer Exception\n" + n.getMessage());
-		        		}
-		        		
+		        		data.add(new ArrayList<String>());
 		        	}
+		        	while (res.next()) {
+		        		for(int i = 0; i < colNames.size(); i++) {
+		        			String colName = colNames.get(i);
+		        			//System.out.println(res.getMetaData().getColumnLabel(i));
+		        			try {
+		        				//System.out.print(res.getString(colName) + "  ");
+		        				data.get(i).add(res.getString(colName));
+		        				//data.get(i).add(res.getString(i));
+		        			}
+		        			catch(NullPointerException n) {
+		        				System.out.println("Error: Null Pointer Exception\n" + n.getMessage());
+		        			}
+
+		        		}
+		        	}
+		        } 
+		        else {
+		        	ArrayList<String> queries = report.getQueryList();
+		        	for(int i = 0; i < queries.size(); i++) {						
+						stmt = con.createStatement();
+				        con.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
+				        res = stmt.executeQuery(queries.get(i));
+				        
+				        ArrayList<String> result = new ArrayList<String>(1);
+				        ArrayList<String> colNames = report.getColumns();
+				        System.out.println("Made it to index " + i);
+				        res.next();
+				        result.add(res.getString(colNames.get(i)));
+				        data.add(result);				        
+					}
 		        }
 		        return data;
-		        } 
-		     catch (SQLException e ) {
-		        System.out.println(e);
-		        return null;
-		        }
-		     catch (Exception e2) {
-		    	 if(e2 instanceof SQLException) {
-		    		 throw e2;
-		    	 }
-		    	 else {
-		    		 System.out.println(e2.getMessage());
-		    		 return null;
-		    	 }
 		     }
-		     finally {
-		        if (stmt != null) { stmt.close(); }
-		    }
-		}
 	
 	public static HashMap<String,String[]> getTargets() {
 		HashMap<String,String[]> tar = new HashMap<String, String[]>();
@@ -158,6 +157,7 @@ public class DataIn {
 			return null;
 		}
 	} 
+	
 	
 	public static void main(String[] args) {
 		try {
