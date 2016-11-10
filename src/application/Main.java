@@ -3,19 +3,24 @@ package application;
 import javafx.application.Application;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.beans.value.ObservableValue;
 import java.util.ArrayList;
+import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.event.EventType;
 import javafx.event.EventHandler;
 import javafx.scene.input.MouseEvent;
 import javafx.stage.Modality;
+import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.scene.control.*;
 import javafx.scene.Scene;
+import javafx.scene.Node;
 import javafx.scene.layout.*;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.io.IOException;
+import java.io.File;
 import javafx.scene.control.ScrollPane;
 import javafx.fxml.FXMLLoader;
 
@@ -43,16 +48,24 @@ public class Main extends Application {
 	private boolean res;
 	ObservableList<String> resourcing;
 	ObservableList<String> distribution;
+	Stage proStage;
+	RadioButton prevBt;
+	RadioButton custBt;
+	private TextField sDate;
+	private TextField eDate;
+	private double progress;
+	
 	
 	@Override
 	public void start(Stage primaryStage) {
 		try {
 			auth = false;
 			res = true;
+			initProgress();
 			
 			ReportTemplate.initReports();
 			//in = new DataIn("PrimariusConnectionURL.txt", "", "");
-			in = new DataIn("SawbugWinConnectionUrl.txt", "", ""); //SHORTCUT ONLY FOR DEVELOPMENT --MUST BE REMOVED.
+			in = new DataIn("txtFiles/SawbugWinConnectionUrl.txt", "", ""); //SHORTCUT ONLY FOR DEVELOPMENT --MUST BE REMOVED.
 			//primaryStage.getAuth(); //Creates and then closes another stage.
 			//Once authenticated, show report selection screen.
 			//GridPane root2 = FXMLLoader.load(getClass().getResource("fxml_root.fxml"));
@@ -75,10 +88,11 @@ public class Main extends Application {
 			ObservableList<String> category = FXCollections.observableArrayList (
 				    "Resourcing", "Distribution");
 			catList.setItems(category);
+			catList.getSelectionModel().selectFirst();			
+			catList.setMaxWidth(150);
 			
 			ListView<String> repList = new ListView<String>();
 			choices.getChildren().add(repList);
-			
 			catList.setOnMouseClicked(new EventHandler<MouseEvent>() {
 				@Override
 				public void handle(MouseEvent event) {
@@ -90,41 +104,94 @@ public class Main extends Application {
 			ArrayList<String> resReportNames = new ArrayList<String>();
 			for(ReportTemplate report : ReportTemplate.getReportList()) {
 				if(report.getResStatus()) {
-					resReportNames.add(report.getName());
+					resReportNames.add(report.getLongName());
 				}
 				else {
-					distReportNames.add(report.getName());
+					distReportNames.add(report.getLongName());
 				}
 			}
 			resourcing = FXCollections.observableArrayList(resReportNames);
 			distribution = FXCollections.observableArrayList (distReportNames);			
 			repList.setItems(resourcing);
+			repList.getSelectionModel().selectFirst();
+			repList.setMinWidth(330);
+			
+			repList.setOnMouseClicked(new EventHandler<MouseEvent>() {
+				@Override
+				public void handle(MouseEvent event) {
+					if(repList.getSelectionModel().getSelectedItem() != null) {
+						ReportTemplate repTemp = getReportByName(repList.getSelectionModel().getSelectedItem());
+						System.out.println(repTemp.getClass().getSimpleName().substring(0, 4));
+						if(repTemp.getClass().getSimpleName().substring(0, 4).equals("FYTD")) {
+							prevBt.setText("Fiscal Year to Date");
+							prevBt.setUserData("Fiscal Year to Date");
+						}
+						else{
+							String time = repTemp.getTimeFrame();						
+							prevBt.setText("Previous " + time);
+							prevBt.setUserData("Previous " + time);
+						}
+					}
+				}
+			});
 			
 			ScrollPane s1 = new ScrollPane();
 			s1.setPrefSize(60, 120);
 			s1.setContent(repList);
-			s1.setVbarPolicy(ScrollPane.ScrollBarPolicy.ALWAYS);			
+			s1.setVbarPolicy(ScrollPane.ScrollBarPolicy.ALWAYS);
+			
+			final ToggleGroup btGroup = new ToggleGroup();
+			VBox btBox = new VBox();
+						
+		    prevBt = new RadioButton("Previous Month");
+		    prevBt.setUserData("Previous Month");
+		    prevBt.setToggleGroup(btGroup);
+		    btBox.getChildren().add(prevBt);
+		    prevBt.setSelected(true);
+		    custBt = new RadioButton("Custom Time Frame");
+		    custBt.setUserData("Custom Time Frame");
+		    custBt.setToggleGroup(btGroup);
+		    btBox.getChildren().add(custBt);
+		    Label dateDirections = new Label(" Please enter a date\n range in the format\n mm/dd/yyyy");
+		    btBox.getChildren().add(dateDirections);
+		    sDate = new TextField();
+		    btBox.getChildren().add(sDate);
+		    eDate = new TextField();
+		    btBox.getChildren().add(eDate);
+		    Label dateClar = new Label(" (Report includes orders\n from both the start\n and end dates.)");
+		    btBox.getChildren().add(dateClar);
+		    
+		    choices.getChildren().add(btBox);			
 			
 			//Buttons
 			Button go = new Button("Run Report");
 			go.setOnAction(new EventHandler<ActionEvent>() {
 				@Override
 				public void handle(ActionEvent event) {
-					runReport(repList);
-					
+					String selection = repList.getSelectionModel().getSelectedItem();
+					if(selection != null) {
+						ReportTemplate temp = getReportByName(selection);
+						String time = getUserTimeFrame(temp, btGroup.getSelectedToggle().getUserData().toString());						
+						if(time != null) {
+							runReport(temp, time);
+						}
+						else {
+							//Print out error message saying you screwed up the dates.
+						}
+					}
 				}
 			});
 			
-			Button details = new Button("View Details");
-			details.setOnAction(new EventHandler<ActionEvent>() {
-				@Override
-				public void handle(ActionEvent event) {
-					editReport(repList);
-					
-				}
-			});
+//			Button details = new Button("View Details");
+//			details.setOnAction(new EventHandler<ActionEvent>() {
+//				@Override
+//				public void handle(ActionEvent event) {
+//					editReport(repList);
+//					
+//				}
+//			});
 			root.getChildren().add(go);
-			root.getChildren().add(details);
+//			root.getChildren().add(details);
 			
 			//Report List 
 			}
@@ -141,47 +208,131 @@ public class Main extends Application {
 		
 	} 
 	
-	private void runReport(ListView<String> repList) {
-		if(repList.getSelectionModel().getSelectedItem() != null) {
-			String reportName = repList.getSelectionModel().getSelectedItem().trim();
+	private ReportTemplate getReportByName(String reportName) {
+		ReportTemplate temp = null;
+		for(ReportTemplate report : ReportTemplate.getReportList()) {
+			if(report.getLongName().equals(reportName)) {
+				temp = report;
+			}
+		}
+		if(temp == null) {
+			System.out.println("REPORT NOT FOUND");
+		}
+		return temp;
+	}
+	
+	private void runReport(ReportTemplate temp, String time) {
 			try {
-				System.out.println(reportName);
-				ReportTemplate temp = null;
-				for(ReportTemplate report : ReportTemplate.getReportList()) {
-					if(report.getName().equals(reportName)) {
-						temp = report;
+				System.out.println(temp.getLongName() + " for " + temp.getStartDate() + " to " 
+						+ temp.getEndDate());
+				//ReportTemplate temp = ReportTemplate.getResDic().get(selection);
+				showProgress();
+				FileChooser fileChooser = new FileChooser();
+				fileChooser.setTitle("Open Resource File");
+				fileChooser.setInitialDirectory(new File(System.getProperty("user.dir")));
+				fileChooser.setInitialFileName("Report.xlsx");
+				File fileName = fileChooser.showSaveDialog(proStage);
+				if(fileName != null) {
+					String path = fileName.getAbsolutePath();
+					if(path.substring(path.length()-5).equals(".xlsx")){
+						out.setOutputFile(path);
+					}
+					else {
+						out.setOutputFile(path + ".xlsx");
+					}
+					ArrayList<ArrayList<String>> results = in.queryDB(temp, this);
+					if(results != null && results.size() > 0 && results.get(0).size() > 0) {
+						temp.makeReport(results, time);
 					}
 				}
-				if(temp == null) {
-					System.out.println("REPORT NOT FOUND");
-				}
-
-				//ReportTemplate temp = ReportTemplate.getResDic().get(selection);
-				ArrayList<ArrayList<String>> results = in.queryDB(temp);
-				if(results != null && results.size() > 0 && results.get(0).size() > 0) {
-					//temp.getCleanRules();
-					temp.cleanData(results);
-					temp.makeReport(results);
-					//btn.setText("Done"); 
-				}
+				closeProgress();
 			}
-			catch(SQLException e) {System.out.println("Error: SQLError\n" + e.getMessage());}
+			catch(SQLException e) {
+				System.out.println("Error: SQLError\n");
+				e.printStackTrace();
+				}
+			
 		}
-	}
-	
-	private void editReport(ListView<String> repList) {
-		
-	}
 	
 	private void toggleRepList(ListView<String> repList, String sel) {
-		if(res && sel.equals("Distribution")) {
+		if(sel == null) {
+			//Do nothing
+		}
+		else if(res && sel.equals("Distribution")) {
 			res = false;
 			repList.setItems(distribution);
+			repList.getSelectionModel().selectFirst();
 		}
 		else if((!res) && sel.equals("Resourcing")) {
 			res = true;
 			repList.setItems(resourcing);
+			repList.getSelectionModel().selectFirst();
 		}
+	}
+	
+	/**
+	 * Returns false if the dates entered are not valid.
+	 * Updates dates on report and returns true if the dates entered are valid. 
+	 */
+	private String getUserTimeFrame(ReportTemplate repTemp, String radioBtSelection) {
+		System.out.println(radioBtSelection);
+		if(radioBtSelection.equals(prevBt.getText())) {
+			return prevBt.getText();
+		}
+		else {
+			String staDate = sDate.getText();
+			String endDate = eDate.getText();
+			if(staDate == null || endDate == null || staDate == "" || endDate == "") {
+				return null;
+			}
+			String[] staPieces = staDate.split("/");
+			String[] endPieces = endDate.split("/");
+			if(staPieces.length != 3 || endPieces.length != 3){
+				return null;
+					}
+			try {
+				int sYear = Integer.parseInt(staPieces[2]);
+				int sMo = Integer.parseInt(staPieces[0]);
+				int sDay = Integer.parseInt(staPieces[1]);
+				int eYear = Integer.parseInt(endPieces[2]);
+				int eMo = Integer.parseInt(endPieces[0]);
+				int eDay = Integer.parseInt(endPieces[1]);
+				if(repTemp.setStartDate(sYear,sMo,sDay) && repTemp.setEndDate(eYear,eMo,eDay)) {
+					return sMo +"/"+ sDay +"/"+ sYear +" to "+ eMo +"/"+ eDay +"/"+ eYear;
+				}
+			}
+			catch(Exception e) {
+				e.printStackTrace();
+				return null;
+			}			
+			return null;
+		}
+		//else continue with the default dates
+	}
+	
+	public void setProgress(double pro) {
+		progress = pro;
+	}
+	
+	private void showProgress() {
+		proStage.show();
+	}
+	
+	private void initProgress() {		
+		//pi = new ProgressBar(0.5F);
+		Label proLabel = new Label("Processing");
+		proLabel.setText("Processing");
+		proStage = new Stage();
+		TilePane proRoot = new TilePane();
+		Scene proScene = new Scene(proRoot);	
+		proStage.initModality(Modality.APPLICATION_MODAL);
+		proStage.setScene(proScene);
+		proRoot.getChildren().add(proLabel);
+		//proRoot.getChildren().add(pi);		
+	}
+	
+	private void closeProgress() {
+		proStage.close();
 	}
 	
 	/**
@@ -241,6 +392,20 @@ public class Main extends Application {
 		
 		authRoot.getChildren().add(can);
 		authRoot.getChildren().add(sub);
+	}
+	
+	public Task createWorker() {
+        return new Task() {
+            @Override
+            protected Object call() throws Exception {
+                for (int i = 0; i < 10; i++) {
+                    Thread.sleep(200);
+                    //updateMessage("2000 milliseconds");
+                    updateProgress(progress, 1);
+                }
+                return true;
+            }
+        };       
 	}
 	
 	public static void main(String[] args) {

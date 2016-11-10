@@ -10,61 +10,44 @@ import java.util.ArrayList;
  *
  */
 public class TestDistReport extends ReportTemplate {
-	
-	private ArrayList<String> columns;
-	private String query;
+
+	private ArrayList tars;
 	/**
 	 * @param name
 	 */
-	public TestDistReport(String name) {
-		super(name, false, ReportTemplate.M);
-		query = "Select ProductKey, OrderDateKey, DueDateKey from FactInternetSales Where ProductKey = '310'"; //+
-				//"And uqryReceipts_ReceiptDet.LogDate >= " + getFormattedTS(YStaDate.minusYears(2)) +  
-				//"And uqryReceipts_ReceiptDet.LogDate < " + getFormattedTS(YEndDate.minusYears(2));
-		columns = new ArrayList<String>(4);
-		columns.add("ProductKey");
-		columns.add("OrderDateKey");
-		columns.add("DueDateKey");
+	public TestDistReport(char timeframe) {
+		super("Test Distribution Report", timeframe, false);
+		setPrevDates(timeframe);
+		
+		cols = new ArrayList<String>(3);
+		cols.add("ProductKey");
+		cols.add("TotalProductCost");
+		cols.add("TaxAmt");
+		
+		tars = new ArrayList<String>(3);
+		tars.add("5");
+		tars.add("40");
+		tars.add("300");
 	}
-
+	
 	@Override
-	public ArrayList<ArrayList<String>> cleanData(ArrayList<ArrayList<String>> list) {
-		// TODO Auto-generated method stub
-		return list;
-	}
-
-	@Override
-	public void format(String excelFileName) {
-		// TODO Auto-generated method stub
+	public void makeReport(ArrayList<ArrayList<String>> results, String time) {
+		DataOut.makeBarChartLineOverlay(super.getShortName() + " for " + time, 
+				cols, ReportTemplate.getBarData(results), tars);
 		
 	}
 
 	@Override
-	public ArrayList<String> getColumns() {
-		// TODO Auto-generated method stub
-		return columns;
-	}
-
-	@Override
-	public void setTargets(ArrayList<String> targets) {
-		// TODO Auto-generated method stub
+	protected void makeQueries(String startTimeStamp, String endTimeStamp) {
+		String query;
+		query = "Select Top 1 ProductKey from FactInternetSales";
+		queries.add(query);
 		
-	}
-
-	@Override
-	protected ArrayList<String> getTargets() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public ArrayList<String> getQueryList() {
-		return null;
-	}
-
-	@Override
-	public void makeReport(ArrayList<ArrayList<String>> results) {
-		// TODO Auto-generated method stub
+		query = "Select Top 1 TotalProductCost from FactInternetSales";
+		queries.add(query);
 		
+		query = "Select Top 1 TaxAmt from FactInternetSales";
+		queries.add(query);
+			
 	}
 }

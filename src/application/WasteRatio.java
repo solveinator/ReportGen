@@ -4,43 +4,20 @@ import java.util.ArrayList;
 
 public class WasteRatio extends ReportTemplate {
 
-	public WasteRatio(String reportName, char timeframe) {
-		super(reportName, false, timeframe);
+	public WasteRatio(char timeframe) {
+		super("Waste Ratio for Specific Products", timeframe, false);
+		setPrevDates(timeframe);
 		// TODO Auto-generated constructor stub
 	}
 
 	@Override
-	public ArrayList<String> getColumns() {
+	public void makeReport(ArrayList<ArrayList<String>> results, String time) {
 		// TODO Auto-generated method stub
-		return null;
+		
 	}
 
 	@Override
-	public void setTargets(ArrayList<String> targets) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	protected ArrayList<String> getTargets() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public String getSQL() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public void format(String excelFileName) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void makeReport(ArrayList<ArrayList<String>> results) {
+	protected void makeQueries(String startTimeStamp, String endTimeStamp) {
 		// TODO Auto-generated method stub
 		
 	}

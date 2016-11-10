@@ -65,14 +65,14 @@ public class DataIn {
 	}
 	
 	/**
-	 * @param report ReportTemplate - A class which inherits the ReportTemplate class. Note: 
-	 * The ReportTemplate class is meant to serve as a template, and it should not be used
+	 * @param report ReportTemplate - An object which inherits from the ReportTemplate class
+	 * because the ReportTemplate class is meant to serve as a template, and it should not be used
 	 * as an input for this method. 
 	 *  
 	 * @return ArrayList<ArrayList<String>> 
 	 * @throws SQLException
 	 */
-	public ArrayList<ArrayList<String>> queryDB(ReportTemplate report) throws SQLException {
+	public ArrayList<ArrayList<String>> queryDB(ReportTemplate report, Main main) throws SQLException {
 		Connection con = getConnection();
 	    System.out.println("Connected to " + dbNickName);
 		Statement stmt = null;
@@ -94,15 +94,11 @@ public class DataIn {
 		        		for(int i = 0; i < colNames.size(); i++) {
 		        			String colName = colNames.get(i);
 		        			//System.out.println(res.getMetaData().getColumnLabel(i));
-		        			try {
-		        				//System.out.print(res.getString(colName) + "  ");
-		        				data.get(i).add(res.getString(colName));
-		        				//data.get(i).add(res.getString(i));
-		        			}
-		        			catch(NullPointerException n) {
-		        				System.out.println("Error: Null Pointer Exception\n" + n.getMessage());
-		        			}
-
+		        			//System.out.print(res.getString(colName) + "  ");
+		        			data.get(i).add(res.getString(colName));
+		        			double max = (i * 1.0)/(colNames.size() + 2);
+		        			main.setProgress((i * 1.0)/(colNames.size() + 2));
+		        			//data.get(i).add(res.getString(i));
 		        		}
 		        	}
 		        } 
@@ -115,48 +111,49 @@ public class DataIn {
 				        
 				        ArrayList<String> result = new ArrayList<String>(1);
 				        ArrayList<String> colNames = report.getColumns();
-				        System.out.println("Made it to index " + i);
 				        res.next();
 				        result.add(res.getString(colNames.get(i)));
+				        main.setProgress(i/(queries.size()+ 2));
+				        System.out.println("Made it to index " + i + ": " + result.get(0));
 				        data.add(result);				        
 					}
 		        }
 		        return data;
 		     }
 	
-	public static HashMap<String,String[]> getTargets() {
-		HashMap<String,String[]> tar = new HashMap<String, String[]>();
-		try {
-		    XSSFWorkbook wb = new XSSFWorkbook(new FileInputStream("Target.xlsx"));
-		    XSSFExcelExtractor extractor = new XSSFExcelExtractor(wb);
-	
-		    extractor.setFormulasNotResults(true);
-		    extractor.setIncludeSheetNames(false);
-		    String[] text = extractor.getText().split("\n");
-		    for(int i = 0; i < text.length; i++) {
-		    	String[] line = text[i].split("\\|");
-		    	if(line.length == 1) {
-		    		tar.put(line[0], null);
-		    	}
-		    	else if (line.length > 1) {
-		    		String[] temp = new String[2];
-		    		temp[0] = line[1].trim();
-		    		temp[1] = line[2].trim();
-		    		tar.put(line[0].trim(), temp);
-		    			System.out.println("[" + line[0] + "]: " + temp[0] + " " + temp[1]);
-		    	}
-		    }    
-		return tar;
-		}
-		catch(FileNotFoundException e) {
-			System.out.println(e.getMessage());
-			return null;
-		}
-		catch(IOException e) {
-			System.out.println(e.getMessage());
-			return null;
-		}
-	} 
+//	public static HashMap<String,String[]> getTargets() {
+//		HashMap<String,String[]> tar = new HashMap<String, String[]>();
+//		try {
+//		    XSSFWorkbook wb = new XSSFWorkbook(new FileInputStream("Target.xlsx"));
+//		    XSSFExcelExtractor extractor = new XSSFExcelExtractor(wb);
+//	
+//		    extractor.setFormulasNotResults(true);
+//		    extractor.setIncludeSheetNames(false);
+//		    String[] text = extractor.getText().split("\n");
+//		    for(int i = 0; i < text.length; i++) {
+//		    	String[] line = text[i].split("\\|");
+//		    	if(line.length == 1) {
+//		    		tar.put(line[0], null);
+//		    	}
+//		    	else if (line.length > 1) {
+//		    		String[] temp = new String[2];
+//		    		temp[0] = line[1].trim();
+//		    		temp[1] = line[2].trim();
+//		    		tar.put(line[0].trim(), temp);
+//		    			System.out.println("[" + line[0] + "]: " + temp[0] + " " + temp[1]);
+//		    	}
+//		    }    
+//		return tar;
+//		}
+//		catch(FileNotFoundException e) {
+//			System.out.println(e.getMessage());
+//			return null;
+//		}
+//		catch(IOException e) {
+//			System.out.println(e.getMessage());
+//			return null;
+//		}
+//	} 
 	
 	
 	public static void main(String[] args) {
@@ -167,6 +164,6 @@ public class DataIn {
 		catch(SQLException e) {
 			System.out.print("Error: " + e.getMessage());
 		}
-		DataIn.getTargets();
+		//DataIn.getTargets();
 	}
 }

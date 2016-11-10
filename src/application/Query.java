@@ -17,13 +17,21 @@ public class Query {
 	 * These include
 	 * columnNames, 
 	 */
-	private String query;
 	
-	public Query(String col, String tbl, String where) throws SQLException {
-		query = "SELECT " + col + " FROM " + tbl + " WHERE " + where;
+	public static String getQuery(String col, String tbl, String where) throws SQLException {
+		String query = "SELECT " + col + " FROM " + tbl + " WHERE " + where;
+		return query;
 	}
-	public Query(String[] columns, String tableName, String[] where, String groupBy, 
+	
+	public static String getQuery(String col, String tbl, String[] where) throws SQLException {
+		String cols[] = new String[1];
+		cols[0] = col;
+		return getQuery(cols, tbl, where, null, null, null);
+	}
+	
+	public static String getQuery(String[] columns, String tableName, String[] where, String groupBy, 
 			String[] having, String orderBy) throws SQLException {
+		String query;
 		if(columns == null || tableName == null || tableName == "") {
 			throw new SQLException();
 		}
@@ -59,19 +67,14 @@ public class Query {
 			query = query.trim();
 			System.out.println(query);
 		}
-	
-	
-	
-	}
-	
-	public String getQuery() {
 		return query;
+	
 	}
 	
 	public static void main(String[] args) {
 		String[] str = new String[2];
 		try {
-			Query testQ = new Query(str, "TableName", str, "", str, "");
+			String testQ = getQuery(str, "TableName", str, "", str, "");
 		}
 		catch(SQLException e) {
 			System.out.print("SQLExpression misformed.");
@@ -79,14 +82,14 @@ public class Query {
 		str[0] = "Cows";
 		str[1] = "Sheep";
 		try {
-			Query testQ = new Query(str, "TableName", str, "Cows", str, "");
+			String testQ = getQuery(str, "TableName", str, "Cows", str, "");
 		}
 		catch(SQLException e) {
 			System.out.print("Booooo.");
 		}
 		try {
-			Query testQ = new Query("Cow", "Farm", "Cows=8");
-			System.out.println(testQ.getQuery());
+			String testQ = getQuery("Cow", "Farm", "Cows=8");
+			System.out.println(testQ);
 		}
 		catch(SQLException e) {
 			System.out.print("Booooo.");
