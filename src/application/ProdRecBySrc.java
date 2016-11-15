@@ -24,24 +24,16 @@ public class ProdRecBySrc extends ReportTemplate {
 		cols.add("Agencies");
 		cols.add("FoodProducers");
 		cols.add("Retail");
+		cols.add("FDAndPostRetail");
 		cols.add("FarmAndGarden");
-		cols.add("FDAndPostRetail");		
 		cols.add("USDA");
 		cols.add("Purchased");
-		
-		
-			
-			/*Reports Donor  --> Donor --> Total Pounds Received by Category
-			 *  --> Set Date Range, Optional Selections. 
-			 *  --> Product Category Equals After Hour Boxes & Between Purchased-Purch. Bulk 
-			 *  --> Donatoin Type Does not Equal Agency Purchases
-			 */
 				
 		cats.add("OFB / RFB / PA");
 		cats.add("Producers / Manufacturers");
 		cats.add("Retail Partners");
+		cats.add("Fooddrives / Post Retail");
 		cats.add("Farms / Gardens");
-		cats.add("Fooddrives / Post Retail");		
 		cats.add("USDA");
 		cats.add("Purchased");
 	}
@@ -68,16 +60,14 @@ public class ProdRecBySrc extends ReportTemplate {
 		 */
 		query = "SELECT SUM(ReceivedWeight) As Agencies "
 				+ "FROM NFBSData.dbo.uqryReceipts_ReceiptDet "
-				+ "WHERE uqryReceipts_ReceiptDet.LogID NOT IN "
-					+ "(SELECT uqryReceipts_Receipts.LogID "
-					+ "FROM NFBSData.dbo.uqryReceipts_Receipts "
-					+ "WHERE \"Donation Type\" Like '*Purchase%' "
-					+ "OR ( \"Donation Type\" >= '*FD- Individual Dock Delivery' "
-					+ "And \"Donation Type\" <= '*FD-The Great Food Drive') ) "				
-				+ "AND (Category <> 'MPFS MFG' AND Category <> 'GOVERNMENT') "
-				+ "AND ((DonorRef >= 'PA1703' AND DonorRef <= 'PA974') "
+				+ "WHERE (Category <> 'MPFS MFG' AND Category <> 'GOVERNMENT') "
+				+ "AND (((DonorRef >= 'PA1703' AND DonorRef <= 'PA974') "
 					+ "OR (DonorRef >= 'RFB2208' AND DonorRef <= 'RFB494') "
 					+ "OR DonorRef = '446' ) " 
+				+ "OR (uqryReceipts_ReceiptDet.LogID IN "
+						+ "(SELECT uqryReceipts_Receipts.LogID "
+						+ "FROM NFBSData.dbo.uqryReceipts_Receipts "
+						+ "WHERE \"Donation Type\" Like '*Purchase%'))) "
 				+ common;
 		queries.add(query);
 		
@@ -87,8 +77,6 @@ public class ProdRecBySrc extends ReportTemplate {
 					+ "(SELECT uqryReceipts_Receipts.LogID "
 					+ "FROM NFBSData.dbo.uqryReceipts_Receipts "
 					+ "WHERE \"Donation Type\" Like '*Purchase%' "
-					+ "OR ( \"Donation Type\" >= '*FD- Individual Dock Delivery' "
-					+ "And \"Donation Type\" <= '*FD-The Great Food Drive') ) "
 				+ "AND (\"Class of Trade\" = '*Food Processor') "
 				+ common;
 		queries.add(query);
@@ -105,21 +93,6 @@ public class ProdRecBySrc extends ReportTemplate {
 				+ common;
 			queries.add(query);
 		
-			query = "SELECT SUM(ReceivedWeight) As FarmAndGarden "
-				+ "FROM NFBSData.dbo.uqryReceipts_ReceiptDet "
-				+ "WHERE uqryReceipts_ReceiptDet.LogID NOT IN "
-					+ "(SELECT uqryReceipts_Receipts.LogID "
-					+ "FROM NFBSData.dbo.uqryReceipts_Receipts "
-					+ "WHERE \"Donation Type\" Like '*Purchase%' "
-					+ "OR ( \"Donation Type\" >= '*FD- Individual Dock Delivery' "
-						+ "And \"Donation Type\" <= '*FD-The Great Food Drive') ) "
-				+ "AND ((\"Class of Trade\" = '*Farm' OR \"Class of Trade\" = '*Local Garden') "
-				+ "AND Category <> 'PURCHASED') "
-				+ "AND (ProductRef = '1305' OR ProductRef = '2500' OR "
-				+ 		"(ProductRef >= '1406' AND ProductRef <= '1411')) "
-				+ common;
-			queries.add(query);
-			
 			query = "SELECT SUM(ReceivedWeight) As FDAndPostRetail "
 					+ "FROM NFBSData.dbo.uqryReceipts_ReceiptDet "
 					+ "WHERE uqryReceipts_ReceiptDet.LogID IN "
@@ -137,26 +110,33 @@ public class ProdRecBySrc extends ReportTemplate {
 					+ "AND ProductRef <> '1411' "
 					+ common;
 			queries.add(query);
+			
+			query = "SELECT SUM(ReceivedWeight) As FarmAndGarden "
+				+ "FROM NFBSData.dbo.uqryReceipts_ReceiptDet "
+				+ "WHERE (\"Class of Trade\" = '*Farm' OR \"Class of Trade\" = '*Local Garden') "
+					+ "AND (ProductRef = '1305' "
+					+ "OR ProductRef = '2500' "
+					+ "OR ProductRef = '1406' "
+					+ "OR ProductRef = '1407' "
+					+ "OR ProductRef = '1408' "
+					+ "OR ProductRef = '1409' "
+					+ "OR ProductRef = '1410' "
+					+ "OR ProductRef = '1411' ) "
+				+ common;
+			queries.add(query);
 		
 			query = "SELECT SUM(ReceivedWeight) As USDA " 
 					+ "FROM NFBSData.dbo.uqryReceipts_ReceiptDet "
-					+ "WHERE uqryReceipts_ReceiptDet.LogID NOT IN "
-						+ "(SELECT uqryReceipts_Receipts.LogID "
-						+ "FROM NFBSData.dbo.uqryReceipts_Receipts "
-						+ "WHERE \"Donation Type\" Like '*Purchase%' "
-						+ "OR ( \"Donation Type\" >= '*FD- Individual Dock Delivery' "
-						+ "And \"Donation Type\" <= '*FD-The Great Food Drive') ) "
-					+ "AND (Category = 'GOVERNMENT') "
+					+ "WHERE (Category = 'GOVERNMENT') "
 					+ common;
 			queries.add(query);
 					
 			query = "SELECT SUM(ReceivedWeight) As Purchased "
 					+ "FROM NFBSData.dbo.uqryReceipts_ReceiptDet "
-					+ "WHERE uqryReceipts_ReceiptDet.LogID IN "
+					+ "WHERE uqryReceipts_ReceiptDet.LogID NOT IN "
 						+ "(SELECT uqryReceipts_Receipts.LogID "
 						+ "FROM NFBSData.dbo.uqryReceipts_Receipts "
 						+ "WHERE \"Donation Type\" Like '*Purchase%') "
-					+ "AND \"Class of Trade\" <> '*Food Processor' "
 					+ "AND (Category = 'AFTER HOURS BOX' OR Category = 'PURCHASED' OR Category = 'PURCH-BLK') "
 					+ common;
 			queries.add(query);

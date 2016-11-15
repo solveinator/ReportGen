@@ -87,6 +87,7 @@ public class DistFYvsLastFY extends ReportTemplate {
 
 	@Override
 	protected void makeQueries(String startTimeStamp, String endTimeStamp) {
+		
 		staDate = startTimeStamp.substring(11,15).replace("-", "/");
 		endDate = endTimeStamp.substring(11,15).replace("-", "/");
 		queries = new ArrayList<String>();
