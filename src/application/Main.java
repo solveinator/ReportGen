@@ -14,6 +14,7 @@ import javafx.stage.Modality;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.scene.control.*;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.Scene;
 import javafx.scene.Node;
 import javafx.scene.layout.*;
@@ -247,11 +248,15 @@ public class Main extends Application {
 				}
 				closeProgress();
 			}
-			catch(SQLException e) {
-				System.out.println("Error: SQLError\n");
+			catch(Exception e) {
+				closeProgress();
+				Alert alert = new Alert(AlertType.ERROR);
+				alert.setHeaderText("Error: " + e.getClass().getSimpleName());
+				alert.setContentText("The program has encountered the following error:\n" + 
+						e.getClass() + "\n\n" + e.getMessage());
+				alert.show();
 				e.printStackTrace();
-				}
-			
+			}
 		}
 	
 	private void toggleRepList(ListView<String> repList, String sel) {
@@ -377,7 +382,7 @@ public class Main extends Application {
 		Button sub = new Button("Submit");
 		sub.setOnAction(e -> {
 				try {
-					in = new DataIn("PrimariusConnectionURL.txt", userText.getText().trim(), passText.getText().trim());
+					in = new DataIn("PrimariusConnectionURL.txt",userText.getText().trim(), passText.getText().trim());
 					//in = new DataIn("SawbugConnectionUrl.txt", userText.getText().trim(), passText.getText().trim());
 					//in = new DataIn("SawbugWinConnectionUrl.txt","",""); 
 					auth = true;

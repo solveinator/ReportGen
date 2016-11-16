@@ -77,7 +77,7 @@ public class ProdRecBySrc extends ReportTemplate {
 					+ "(SELECT uqryReceipts_Receipts.LogID "
 					+ "FROM NFBSData.dbo.uqryReceipts_Receipts "
 					+ "WHERE \"Donation Type\" Like '*Purchase%' "
-				+ "AND (\"Class of Trade\" = '*Food Processor') "
+				+ "AND (\"Class of Trade\" = '*Food Processor')) "
 				+ common;
 		queries.add(query);
 		
