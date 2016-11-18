@@ -59,12 +59,12 @@ public class ProdRecBySrc extends ReportTemplate {
 		 * Product Ref does not equal 1043, 1061, 1064, 1071, 1335                        
 		 */
 		query = "SELECT SUM(ReceivedWeight) As Agencies "
-				+ "FROM NFBSData.dbo.uqryReceipts_ReceiptDet "
+				+ "FROM NFBSData.dbo.uqryReceiptDetailwoDates "
 				+ "WHERE (Category <> 'MPFS MFG' AND Category <> 'GOVERNMENT') "
 				+ "AND (((DonorRef >= 'PA1703' AND DonorRef <= 'PA974') "
 					+ "OR (DonorRef >= 'RFB2208' AND DonorRef <= 'RFB494') "
 					+ "OR DonorRef = '446' ) " 
-				+ "OR (uqryReceipts_ReceiptDet.LogID IN "
+				+ "OR (uqryReceiptDetailwoDates.LogID IN "
 						+ "(SELECT uqryReceipts_Receipts.LogID "
 						+ "FROM NFBSData.dbo.uqryReceipts_Receipts "
 						+ "WHERE \"Donation Type\" Like '*Purchase%'))) "
@@ -72,8 +72,8 @@ public class ProdRecBySrc extends ReportTemplate {
 		queries.add(query);
 		
 		query = "SELECT SUM(ReceivedWeight) As FoodProducers "
-				+ "FROM NFBSData.dbo.uqryReceipts_ReceiptDet "
-				+ "WHERE uqryReceipts_ReceiptDet.LogID NOT IN "
+				+ "FROM NFBSData.dbo.uqryReceiptDetailwoDates "
+				+ "WHERE uqryReceiptDetailwoDates.LogID NOT IN "
 					+ "(SELECT uqryReceipts_Receipts.LogID "
 					+ "FROM NFBSData.dbo.uqryReceipts_Receipts "
 					+ "WHERE \"Donation Type\" Like '*Purchase%') "
@@ -82,8 +82,8 @@ public class ProdRecBySrc extends ReportTemplate {
 		queries.add(query);
 		
 		query = "SELECT SUM(ReceivedWeight) As Retail "
-				+ "FROM NFBSData.dbo.uqryReceipts_ReceiptDet "
-				+ "WHERE uqryReceipts_ReceiptDet.LogID NOT IN "
+				+ "FROM NFBSData.dbo.uqryReceiptDetailwoDates "
+				+ "WHERE uqryReceiptDetailwoDates.LogID NOT IN "
 					+ "(SELECT uqryReceipts_Receipts.LogID "
 					+ "FROM NFBSData.dbo.uqryReceipts_Receipts "
 					+ "WHERE \"Donation Type\" Like '*Purchase%' "
@@ -94,8 +94,8 @@ public class ProdRecBySrc extends ReportTemplate {
 			queries.add(query);
 		
 			query = "SELECT SUM(ReceivedWeight) As FDAndPostRetail "
-					+ "FROM NFBSData.dbo.uqryReceipts_ReceiptDet "
-					+ "WHERE uqryReceipts_ReceiptDet.LogID IN "
+					+ "FROM NFBSData.dbo.uqryReceiptDetailwoDates "
+					+ "WHERE uqryReceiptDetailwoDates.LogID IN "
 						+ "(SELECT uqryReceipts_Receipts.LogID "
 						+ "FROM NFBSData.dbo.uqryReceipts_Receipts "
 						+ "WHERE \"Donation Type\" >= '*FD- Individual Dock Delivery' "
@@ -112,7 +112,7 @@ public class ProdRecBySrc extends ReportTemplate {
 			queries.add(query);
 			
 			query = "SELECT SUM(ReceivedWeight) As FarmAndGarden "
-				+ "FROM NFBSData.dbo.uqryReceipts_ReceiptDet "
+				+ "FROM NFBSData.dbo.uqryReceiptDetailwoDates "
 				+ "WHERE (\"Class of Trade\" = '*Farm' OR \"Class of Trade\" = '*Local Garden') "
 					+ "AND (ProductRef = '1305' "
 					+ "OR ProductRef = '2500' "
@@ -126,14 +126,14 @@ public class ProdRecBySrc extends ReportTemplate {
 			queries.add(query);
 		
 			query = "SELECT SUM(ReceivedWeight) As USDA " 
-					+ "FROM NFBSData.dbo.uqryReceipts_ReceiptDet "
+					+ "FROM NFBSData.dbo.uqryReceiptDetailwoDates "
 					+ "WHERE (Category = 'GOVERNMENT') "
 					+ common;
 			queries.add(query);
 					
 			query = "SELECT SUM(ReceivedWeight) As Purchased "
-					+ "FROM NFBSData.dbo.uqryReceipts_ReceiptDet "
-					+ "WHERE uqryReceipts_ReceiptDet.LogID NOT IN "
+					+ "FROM NFBSData.dbo.uqryReceiptDetailwoDates "
+					+ "WHERE uqryReceiptDetailwoDates.LogID NOT IN "
 						+ "(SELECT uqryReceipts_Receipts.LogID "
 						+ "FROM NFBSData.dbo.uqryReceipts_Receipts "
 						+ "WHERE \"Donation Type\" Like '*Purchase%') "

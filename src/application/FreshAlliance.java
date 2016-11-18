@@ -45,12 +45,12 @@ public class FreshAlliance extends ReportTemplate {
 	@Override
 	protected void makeQueries(String startTimeStamp, String endTimeStamp) {
 		String query = "SELECT LogDate, DonorRef, DonorName, ProductRef "
-				+ "FROM NFBSData.dbo.uqryReceipts_ReceiptDet"; 
+				+ "FROM NFBSData.dbo.uqryReceiptDetailwoDates"; 
 		//query = "SELECT * FROM NFBSData.information_schema.tables WHERE TABLE_TYPE='BASE TABLE'";
-		//query = "SELECT * FROM NFBSData.dbo.uqryReceipts_ReceiptDet";
+		//query = "SELECT * FROM NFBSData.dbo.uqryReceiptDetailwoDates";
 		//query = "SELECT uqryReceipts_ReceiptDet.LogDate, uqryReceipts_ReceiptDet.DonorRef, " +
 		//		"uqryReceipts_ReceiptDet.DonorName, uqryReceipts_ReceiptDet.ProductRef " + 
-		//		"FROM NFBSData.dbo.uqryReceipts_ReceiptDet uqryReceipts_ReceiptDet " +
+		//		"FROM NFBSData.dbo.uqryReceiptDetailwoDates uqryReceipts_ReceiptDet " +
 		//		"WHERE uqryReceipts_ReceiptDet.LogDate >= " + getFormattedTS(start) +  
 		//		"And uqryReceipts_ReceiptDet.LogDate < " + getFormattedTS(end);
 		queries.add(query);

@@ -473,7 +473,7 @@ public abstract class ReportTemplate {
 		//reports.add(new TestDistReport("Monthly: Current month compared to last FY"));
 		//reports.add(new TestDistReport("Monthly: Current FYTD compared to last FY"));
 		//reports.add(new TestDistReport("Monthly: Allocated vs Distributed by Food Source"));
-		//reports.add(new TestDistReport(ReportTemplate.M));
+		reports.add(new TestDistReport(ReportTemplate.A));
 		reports.add(new DistByProdType(ReportTemplate.M));
 		reports.add(new ActVsProjByDistCat(ReportTemplate.Q));
 		reports.add(new FYTDTotalDist(ReportTemplate.Q));
