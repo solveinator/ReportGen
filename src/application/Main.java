@@ -62,15 +62,19 @@ public class Main extends Application {
 		try {
 			auth = false;
 			res = true;
-			initProgress();
 			
+			//Initialize things 
+			initProgress();
 			ReportTemplate.initReports();
+			
+			//Set up datebase connection
 			//in = new DataIn("PrimariusConnectionURL.txt", "", "");
 			in = new DataIn("txtFiles/SawbugWinConnectionUrl.txt", "", ""); //SHORTCUT ONLY FOR DEVELOPMENT --MUST BE REMOVED.
 			//primaryStage.getAuth(); //Creates and then closes another stage.
 			//Once authenticated, show report selection screen.
 			//GridPane root2 = FXMLLoader.load(getClass().getResource("fxml_root.fxml"));
 			
+			//Initialize primary stage.
 			root = new VBox();
 			Scene scene = new Scene(root,600,400);
 			scene.getStylesheets().add(getClass().getResource("application.css").toExternalForm());
@@ -156,8 +160,20 @@ public class Main extends Application {
 		    Label dateDirections = new Label(" Please enter a date\n range in the format\n mm/dd/yyyy");
 		    btBox.getChildren().add(dateDirections);
 		    sDate = new TextField();
+		    sDate.setOnMouseClicked(new EventHandler<MouseEvent>() {
+				@Override
+				public void handle(MouseEvent event) {
+					custBt.setSelected(true);
+				}
+				});
 		    btBox.getChildren().add(sDate);
 		    eDate = new TextField();
+		    eDate.setOnMouseClicked(new EventHandler<MouseEvent>() {
+				@Override
+				public void handle(MouseEvent event) {
+					custBt.setSelected(true);
+				}
+				});
 		    btBox.getChildren().add(eDate);
 		    Label dateClar = new Label(" (Report includes orders\n from both the start\n and end dates.)");
 		    btBox.getChildren().add(dateClar);
@@ -259,6 +275,13 @@ public class Main extends Application {
 			}
 		}
 	
+	/*
+	 * Switches the displayed list of reports depending on whether the user wants to view a received 
+	 * report or a distribution report.
+	 * 
+	 * @param repList
+	 * @param sel
+	 */
 	private void toggleRepList(ListView<String> repList, String sel) {
 		if(sel == null) {
 			//Do nothing
@@ -282,6 +305,7 @@ public class Main extends Application {
 	private String getUserTimeFrame(ReportTemplate repTemp, String radioBtSelection) {
 		System.out.println(radioBtSelection);
 		if(radioBtSelection.equals(prevBt.getText())) {
+			repTemp.resetDates();
 			return prevBt.getText();
 		}
 		else {

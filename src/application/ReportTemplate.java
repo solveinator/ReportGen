@@ -55,6 +55,8 @@ public abstract class ReportTemplate {
 	private static ArrayList<ReportTemplate> reports;
 	protected ArrayList<String> queries;
 	protected ArrayList<String> cols;
+	protected LocalDateTime defaultStartDate;
+	protected LocalDateTime defaultEndDate;
 	protected LocalDateTime startDate;
 	protected LocalDateTime endDate;
 	protected String longName;
@@ -157,40 +159,6 @@ public abstract class ReportTemplate {
 		return "{ts '" + date.toString().replace("T"," ") + ":00'} ";
 	}
 	
-	public ArrayList<String> getCleanRules() {
-		try {
-			ArrayList<String> rules = new ArrayList<String>();
-			InputStream inp = new FileInputStream("Cleaning.xlsx");
-	
-		    Workbook wb = WorkbookFactory.create(inp);
-		    Sheet sheet = wb.getSheetAt(1);
-		    Row row = sheet.getRow(2);
-		    Cell cell = row.getCell(3);
-		    if (cell == null)
-		        cell = row.createCell(3);
-		    cell.setCellType(Cell.CELL_TYPE_STRING);
-		    cell.setCellValue("a test");
-	
-		    // Write the output to a file
-		    FileOutputStream fileOut = new FileOutputStream("Cleaning.xlsx");
-		    wb.write(fileOut);
-		    fileOut.close();
-		    return rules;
-			}
-		catch(FileNotFoundException e) {
-			System.out.println(e.getMessage());
-			return null;
-		}
-		catch(IOException e2) {
-			System.out.println(e2.getMessage());
-			return null;
-		}
-		catch(InvalidFormatException e3) {
-			System.out.println(e3.getMessage());
-			return null;
-		}
-	}
-	
 	/**
 	 * 
 	 */
@@ -205,14 +173,10 @@ public abstract class ReportTemplate {
 	
 	protected abstract void makeQueries(String startTimeStamp, String endTimeStamp);
 	
-	/**
-	 * Cleans and processes data (including any necessary computations). Each inheriting class
-	 * should override this method if cleaning is required. If no specific cleaning rules are 
-	 * included, the list will be returned unchanged.
-	 */
-	//public ArrayList<ArrayList<String>> cleanData( ArrayList<ArrayList<String>> list ) {
-	//	return list;
-	//}
+	public void resetDates() {
+		startDate = defaultStartDate;
+		endDate = defaultEndDate;
+	}
 	
 	public String getShortName() {
 		return shortName;
@@ -285,6 +249,8 @@ public abstract class ReportTemplate {
 			endDate = FYEndDate;
 		}
 		else {System.out.println("You have selected an impossible selection");}
+		defaultStartDate = startDate;
+		defaultEndDate = endDate;
 		days =  ChronoUnit.DAYS.between(startDate, endDate) + 1;
 	}
 	
@@ -317,7 +283,9 @@ public abstract class ReportTemplate {
 			endDate = PFYEndDate;
 		}
 		else {System.out.println("You have selected an impossible selection");}
-		System.out.println(startDate + " " + endDate);
+		//System.out.println(startDate + " " + endDate);
+		defaultStartDate = startDate;
+		defaultEndDate = endDate;
 		days =  ChronoUnit.DAYS.between(startDate, endDate) + 1;
 	}
 	
@@ -353,6 +321,14 @@ public abstract class ReportTemplate {
 	
 	public boolean getResStatus() {
 		return resStatus;
+	}
+
+	/*
+	 * All reports return true by default. Certain reports should not allow a custom time frame (such 
+	 * as FYTD reports). These reports should override this method and return false.
+	 */
+	public boolean allowsCustomTimeFrame() {
+		return true;
 	}
 	
 	/**
